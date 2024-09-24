@@ -41,7 +41,7 @@ login.route('/admin')
             maxAge: 60 * 60 * 1000 // 1 hour expiry
         });
 
-        return res.json({ token });
+        return res.json({ status: 'ok' });
     })
 
 login.route('/client')

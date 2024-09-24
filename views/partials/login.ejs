@@ -135,12 +135,11 @@
             const jsonData = event.detail.xhr.responseText;
             try {
                 const parsedData = JSON.parse(jsonData);
-                console.log(parsedData);
                 if (parsedData.message === "Invalid credentials") {
                     const message = "Invalid credentials. please try again.";
                     document.getElementById('invalid-credentials').innerText = `${message}`;
                 }
-                if (parsedData.token) {
+                if (parsedData.status === 'ok') {
                     window.location.href = '/admin';
                 }
             } catch (e) {
