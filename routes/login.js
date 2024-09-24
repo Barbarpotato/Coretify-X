@@ -20,7 +20,10 @@ login.route('')
     })
 
 login.route('/admin')
-    .post(async (req, res) => {
+    .get((_req, res) => {
+        res.render("partials/login.ejs", { title: "Coretify - Login Admin" });
+    })
+    .post((req, res) => {
 
         const { username, password } = req.body;
 
@@ -32,7 +35,13 @@ login.route('/admin')
         // Generate a JWT token
         const token = jwt.sign({ username }, index.jwtSecretAdmin, { expiresIn: '1h' });
 
-        res.json({ token });
+        res.cookie('token', token, {
+            httpOnly: true,  // Helps prevent client-side script access
+            secure: false,    // Cookie only sent over HTTPS (use in production)
+            maxAge: 60 * 60 * 1000 // 1 hour expiry
+        });
+
+        return res.json({ token });
     })
 
 login.route('/client')
