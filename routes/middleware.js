@@ -4,10 +4,19 @@ import jwt from 'jsonwebtoken';
 export function authenticateToken(req, res, next) {
 
     const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1];
+    let token = authHeader && authHeader.split(' ')[1];
 
+    // if no token provided from authorization
+    // attempt to get the token data from cookies
     if (!token) {
-        return res.status(401).json({ message: 'No token provided' });
+
+        const cookies = req.cookies;
+
+        token = cookies['token'];
+
+        if (!token) {
+            return res.status(401).json({ message: 'No token provided' });
+        }
     }
 
     jwt.verify(token, index.jwtSecretAdmin, (err, user) => {

@@ -45,8 +45,11 @@ register.route('/user')
 
             res.status(201).json({ message: 'User registered successfully' });
         } catch (error) {
-            console.error(error);
-            res.status(500).json({ error: 'User registration failed' });
+            // Handle unique constraint error (P2002)
+            if (error.code === 'P2002' && error.meta.target === 'User_username_key') {
+                return res.status(400).json({ error: 'Username already exists' });
+            }
+            return res.status(500).json({ error: 'User registration failed' });
         }
     })
 
