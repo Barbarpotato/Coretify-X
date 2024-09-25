@@ -10,15 +10,6 @@ const prisma = new PrismaClient();
 
 login.use(bodyParser.json());
 
-login.route('')
-    .get((req, res) => {
-        return res.status(200).json({
-            message: 'Welcome to Login Site!',
-            info: "There are 2 types of login in this endpoint: \n 1. Admin Login \n 2. Client Login",
-            endpoint_list: ["admin", "client"]
-        });
-    })
-
 login.route('/admin')
     .get((_req, res) => {
         res.render("partials/login.ejs", { title: "Coretify - Login Admin" });
@@ -37,11 +28,11 @@ login.route('/admin')
 
         res.cookie('token', token, {
             httpOnly: true,  // Helps prevent client-side script access
-            secure: false,    // Cookie only sent over HTTPS (use in production)
+            secure: true,    // Cookie only sent over HTTPS (use in production)
             maxAge: 60 * 60 * 1000 // 1 hour expiry
         });
 
-        return res.json({ status: 'ok' });
+        return res.json({ status: 'ok', token: token });
     })
 
 login.route('/client')
@@ -60,6 +51,11 @@ login.route('/client')
                 where: { username },
             });
 
+            // check the active status
+            if (!currentUser.is_active) {
+                return res.status(401).json({ message: 'User is not active' });
+            }
+
             // Check if user exists
             if (!currentUser) {
                 return res.status(401).json({ message: 'Invalid credentials' });
@@ -74,7 +70,7 @@ login.route('/client')
             // Generate a JWT token
             const token = jwt.sign({ username }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
-            res.json({ token });
+            res.json({ status: 'ok', token: token });
         } catch (error) {
             console.error(error);
             res.status(500).json({ error: 'Internal Server Error' });

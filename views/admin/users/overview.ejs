@@ -235,7 +235,6 @@
             const jsonData = event.detail.xhr.responseText;
             try {
                 const parsedData = JSON.parse(jsonData);
-                console.log(parsedData);
                 if (parsedData.error) {
                     document.getElementById('error-message').innerHTML = parsedData.error;
                 }

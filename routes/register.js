@@ -1,5 +1,6 @@
 import { authenticateToken } from '../routes/middleware.js';
 import { PrismaClient } from '@prisma/client';
+import { v4 as uuidv4 } from 'uuid';
 import express from 'express';
 import bcrypt from 'bcryptjs';
 import bodyParser from 'body-parser';
@@ -9,18 +10,32 @@ const prisma = new PrismaClient();
 
 register.use(bodyParser.json());
 
-register.route('')
-    .get((req, res) => {
-        return res.status(200).json({
-            message: 'Welcome to Register Site!',
-            info: "There are 2 types of registration in this endpoint: \n 1. User Register \n 2. Application Register",
-            endpoint: ["user", "application"]
-        });
-    })
-
 register.route('/application')
-    .post(authenticateToken, (req, res) => {
-        res.status(201).json({ message: 'Success' });
+    .post(authenticateToken, async (req, res) => {
+
+        const { app_name, app_type, app_url } = req.body;
+
+        // validate the request body
+        if (!app_name || !app_type || !app_url) {
+            return res.status(400).json({ error: 'All fields are required' });
+        }
+
+        try {
+            const newApplication = await prisma.application.create({
+                data: {
+                    app_id: uuidv4(),
+                    app_name,
+                    app_type,
+                    app_url
+                },
+            });
+
+            return res.status(201).json({ message: 'Application registered successfully' });
+
+        } catch (error) {
+            console.error(error)
+            return res.status(500).json({ error: 'Application registration failed' });
+        }
     })
 
 register.route('/user')
@@ -43,7 +58,7 @@ register.route('/user')
                 },
             });
 
-            res.status(201).json({ message: 'User registered successfully' });
+            return res.status(201).json({ message: 'User registered successfully' });
         } catch (error) {
             // Handle unique constraint error (P2002)
             if (error.code === 'P2002' && error.meta.target === 'User_username_key') {

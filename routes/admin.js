@@ -58,14 +58,32 @@ admin.route('/applications_overview')
         // Example  : getting a specific cookie
         const token = cookies['token'];
         // Verify the JWT token
-        jwt.verify(token, index.jwtSecretAdmin, (err, user) => {
+        jwt.verify(token, index.jwtSecretAdmin, async (err, user) => {
 
             // ** if jwt is invalid force redirect to login adin
             if (err) {
                 return res.redirect('/login/admin');
             }
+
+            // get all the applications data information
+            // Find the user in the database
+            const application_list = await prisma.application.findMany({
+                select: {
+                    app_id: true,
+                    app_name: true,
+                    app_url: true,
+                    app_type: true,
+                    created_at: true,
+                    updated_at: true
+                }
+            });
+
+
             // ** if jwt is valid render the admin main page
-            return res.render("admin/applications/overview.ejs", { title: "Coretify - Admin" });
+            return res.render("admin/applications/overview.ejs", {
+                title: "Coretify - Admin",
+                application_list: application_list
+            });
         });
     })
 
@@ -107,6 +125,11 @@ admin.route('/set_active')
         }
     })
 
+admin.route('/logout')
+    .get(authenticateToken, (req, res) => {
+        res.clearCookie('token');
+        res.render("partials/login.ejs", { title: "Coretify - Login Admin" });
+    })
 
 admin.route('/auth')
     .post((req, res) => {

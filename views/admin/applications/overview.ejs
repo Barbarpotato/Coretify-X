@@ -23,9 +23,9 @@
         .bd-placeholder-img {
             font-size: 1.125rem;
             text-anchor: middle;
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            user-select: none;
+            -webkit-app-select: none;
+            -moz-app-select: none;
+            app-select: none;
         }
 
         @media (min-width: 768px) {
@@ -96,20 +96,155 @@
         .bd-mode-toggle .dropdown-menu .active .bi {
             display: block !important;
         }
+
+        th,
+        td {
+            color: yellowgreen !important;
+        }
     </style>
 
 </head>
 
 <body class="bg-dark">
     <main class="d-flex">
+
         <%- include('../../partials/sidebar.ejs') %>
-            <div class="px-2" id="content">
-                <h1>Hello Applications Overview</h1>
+
+            <div class="px-2 py-2" id="content">
+                <div class="container mt-3">
+                    <h3 style="color: yellowgreen;">Applications Overview</h3>
+
+                    <div class="mt-4">
+                        <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal"
+                            data-bs-target="#exampleModal" data-bs-whatever="@mdo">Register app</button>
+                        <table class="table table-dark table-hover p-4">
+                            <thead>
+                                <tr>
+                                    <th scope="col">#</th>
+                                    <th scope="col">App ID</th>
+                                    <th scope="col">App Name</th>
+                                    <th scope="col">App Type</th>
+                                    <th scope="col">App Url</th>
+                                    <th scope="col">Created</th>
+                                    <th scope="col">Updated</th>
+                                    <th scope="col">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% if (application_list.length> 0) { %>
+                                    <% application_list.forEach(function(app, index) { %>
+                                        <tr>
+                                            <td>
+                                                <%= index + 1 %>
+                                            </td>
+                                            <td>
+                                                <%= app.app_id %>
+                                            </td>
+                                            <td>
+                                                <%= app.app_name %>
+                                            </td>
+                                            <td>
+                                                <%= app.app_type %>
+                                            </td>
+                                            <td>
+                                                <a href="<%= app.app_url %>" target="_blank">
+                                                    <%= app.app_url %>
+                                                </a>
+                                            </td>
+                                            <td>
+                                                <%= new Date(app.created_at).toLocaleString() %>
+                                            </td>
+                                            <td>
+                                                <%= new Date(app.updated_at).toLocaleString() %>
+                                            </td>
+                                            <td>
+                                                <a class="btn btn-sm btn-warning" type="button"
+                                                    data-bs-toggle="dropdown" aria-expanded="false">
+                                                    Details
+                                                </a>
+                                            </td>
+                                        </tr>
+                                        <% }) %>
+                                            <% } else { %>
+                                                <tr>
+                                                    <td colspan="5">No apps found.</td>
+                                                </tr>
+                                                <% } %>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="modal bg-dark text-light fade" id="exampleModal" tabindex="-1"
+                        aria-labelledby="exampleModalLabel" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content bg-dark">
+                                <div class="modal-header">
+                                    <h1 class="modal-title fs-5" id="exampleModalLabel">Register App</h1>
+                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                                        aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <form hx-post="/register/application" hx-swap="none">
+                                        <div class="mb-3">
+                                            <label for="recipient-name" class="col-form-label">App Name</label>
+                                            <input name="app_name" type="text"
+                                                class="form-control bg-secondary text-light" id="recipient-name">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="recipient-name" class="col-form-label">App Type</label>
+                                            <input name="app_type" type="text"
+                                                class="form-control bg-secondary text-light" id="recipient-name">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="recipient-name" class="col-form-label">App Url</label>
+                                            <input name="app_url" type="text"
+                                                class="form-control bg-secondary text-light" id="recipient-name">
+                                        </div>
+                                        <p id="error-message" style="color: red; opacity: 0.8; font-weight: 800;"></p>
+                                        <button type="submit" class="btn btn-success">Register</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
             </div>
     </main>
     <script src="/js/sidebars.js"></script>
     <script src="/js/bootstrap.bundle.min.js"></script>
     <script src="/js/htmx.min.js"></script>
+
+
+    <script>
+        document.addEventListener('htmx:afterRequest', (event) => {
+            const jsonData = event.detail.xhr.responseText;
+            try {
+                const parsedData = JSON.parse(jsonData);
+                if (parsedData.error) {
+                    document.getElementById('error-message').innerHTML = parsedData.error;
+                }
+                if (parsedData.message === "Application registered successfully") {
+                    // Get the existing modal instance
+                    var modalElement = document.getElementById('exampleModal');
+                    var modalInstance = bootstrap.Modal.getInstance(modalElement) || new bootstrap.Modal(modalElement);
+
+                    // Close the modal
+                    modalInstance.hide();
+
+                    // added interval
+                    setTimeout(function () {
+                        window.location.reload();
+                    }, 300);
+                }
+            } catch (error) {
+                console.error('Invalid JSON:', error);
+                document.getElementById('json-display').innerText = 'Failed to parse JSON';
+            }
+        });
+    </script>
+
 
 </body>
 
