@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:5.7
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: coretify
+    ports:
+      - "3301:3306"
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      ADMIN_USERNAME : admin
+      ADMIN_PASSWORD : root
+      JWT_SECRET_ADMIN : admin_root
+      JWT_SECRET : root
+      DATABASE_URL: mysql://root:root@mysql:3306/coretify
+    depends_on:
+      - mysql
+    command: >
+      sh -c "
+      npx prisma migrate deploy &&
+      npm run start"
