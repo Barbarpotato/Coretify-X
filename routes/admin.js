@@ -78,11 +78,24 @@ admin.route('/applications_overview')
                 }
             });
 
+            // get all the user data information
+            const user_list = await prisma.user.findMany({
+                where: {
+                    is_active: true
+                },
+                select: {
+                    username: true,
+                    is_active: true,
+                    created_at: true,
+                    updated_at: true
+                }
+            });
 
             // ** if jwt is valid render the admin main page
             return res.render("admin/applications/overview.ejs", {
                 title: "Coretify - Admin",
-                application_list: application_list
+                application_list: application_list,
+                user_list: user_list
             });
         });
     })
@@ -123,6 +136,107 @@ admin.route('/set_active')
         } catch (error) {
             return res.status(500).json({ error: 'User deactivation failed' });
         }
+    })
+
+admin.route('/user_application/:app_id')
+    .get(authenticateToken, async (req, res) => {
+
+        const { app_id } = req.params;
+
+        // validate the request parameter
+        if (!app_id) {
+            return res.status(400).json({ error: 'App ID is required' });
+        }
+
+        try {
+            const user_applications = await prisma.userApplication.findMany({
+                select: {
+                    user: {
+                        select: {
+                            username: true,
+                            is_active: true,
+                            created_at: true,
+                            updated_at: true
+                        }
+                    },
+                    application: {
+                        select: {
+                            app_type: true,
+                            app_id: true,
+                            app_name: true,
+                            app_url: true
+                        }
+                    }
+                }
+            });
+
+            // ** group the applications by user
+            // only get the data from application
+            const group_by_app = user_applications.filter(object => object.application.app_id == app_id);
+
+            // ** map only the user account
+            const final_user_application = group_by_app.map(object => {
+                return object.user
+            })
+
+            return res.json(final_user_application);
+        } catch (error) {
+            console.error('Error fetching user-applications:', error);
+            res.status(500).json({ error: 'Internal Server Error' });
+        }
+
+
+    })
+
+admin.route('/add_user')
+    .post(authenticateToken, async (req, res) => {
+
+        const { username, app_id } = req.body;
+
+        // validate the request body
+        if (!username || !app_id) {
+            return res.status(400).json({ error: 'All fields are required' });
+        }
+
+        try {
+
+            // ** Check if user and application exist
+            const user = await prisma.user.findUnique({ where: { username: username } });
+            const application = await prisma.application.findUnique({ where: { app_id: app_id } });
+
+            if (!user || !application) {
+                return res.status(404).json({ error: 'User or application not found' });
+            }
+
+            // ** Check if the user is already associated with this application
+            const existingUserApplication = await prisma.userApplication.findFirst({
+                where: {
+                    user_id: user.id,
+                    application_id: application.id
+                }
+            });
+
+            if (existingUserApplication) {
+                return res.status(400).json({ error: 'User is already associated with this application' });
+            }
+
+            // ** Create an entry in the UserApplication table
+            const userApplication = await prisma.userApplication.create({
+                data: {
+                    user_id: user.id,
+                    application_id: application.id,
+                },
+            });
+
+            return res.json({
+                "message": "User added successfully to application"
+            })
+
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({ error: 'User registration failed' });
+        }
+
     })
 
 admin.route('/logout')

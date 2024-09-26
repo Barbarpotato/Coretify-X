@@ -107,7 +107,6 @@
 
 <body class="bg-dark">
     <main class="d-flex">
-
         <%- include('../../partials/sidebar.ejs') %>
 
             <div class="px-2 py-2" id="content">
@@ -116,7 +115,7 @@
 
                     <div class="mt-4">
                         <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal"
-                            data-bs-target="#exampleModal" data-bs-whatever="@mdo">Register app</button>
+                            data-bs-target="#register-app" data-bs-whatever="@mdo">Register App</button>
                         <table class="table table-dark table-hover p-4">
                             <thead>
                                 <tr>
@@ -124,7 +123,7 @@
                                     <th scope="col">App ID</th>
                                     <th scope="col">App Name</th>
                                     <th scope="col">App Type</th>
-                                    <th scope="col">App Url</th>
+                                    <th scope="col">App URL</th>
                                     <th scope="col">Created</th>
                                     <th scope="col">Updated</th>
                                     <th scope="col">Actions</th>
@@ -158,47 +157,115 @@
                                                 <%= new Date(app.updated_at).toLocaleString() %>
                                             </td>
                                             <td>
-                                                <a class="btn btn-sm btn-warning" type="button"
-                                                    data-bs-toggle="dropdown" aria-expanded="false">
-                                                    Details
-                                                </a>
+                                                <div class="dropdown">
+                                                    <button class="btn btn-sm btn-warning dropdown-toggle" type="button"
+                                                        data-bs-toggle="dropdown" aria-expanded="false">Actions</button>
+                                                    <ul class="dropdown-menu" style="background-color: yellowgreen;">
+                                                        <li>
+                                                            <a type="button" data-bs-toggle="modal"
+                                                                onclick="setAppDetails('<%= app.app_id %>')"
+                                                                class="dropdown-item" data-bs-target="#details"
+                                                                data-bs-whatever="@mdo">Details</a>
+                                                        </li>
+                                                        <li>
+                                                            <a type="button" data-bs-toggle="modal"
+                                                                onclick="add_user('<%= app.app_id %>')"
+                                                                class="dropdown-item" data-bs-target="#add-user"
+                                                                data-bs-whatever="@mdo">Add User</a>
+                                                        </li>
+                                                    </ul>
+                                                </div>
+
                                             </td>
                                         </tr>
                                         <% }) %>
                                             <% } else { %>
                                                 <tr>
-                                                    <td colspan="5">No apps found.</td>
+                                                    <td colspan="8">No apps found.</td>
                                                 </tr>
                                                 <% } %>
                             </tbody>
                         </table>
                     </div>
 
-                    <div class="modal bg-dark text-light fade" id="exampleModal" tabindex="-1"
-                        aria-labelledby="exampleModalLabel" aria-hidden="true">
+
+                    <div class="modal bg-dark text-light fade" id="details" tabindex="-1"
+                        aria-labelledby="register-appLabel" aria-hidden="true">
                         <div class="modal-dialog">
                             <div class="modal-content bg-dark">
                                 <div class="modal-header">
-                                    <h1 class="modal-title fs-5" id="exampleModalLabel">Register App</h1>
+                                    <h1 class="modal-title fs-5" id="register-appLabel">
+                                        App Membership</h1>
+                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                                        aria-label="Close"></button>
+                                </div>
+                                <div id="app-details" class="modal-body">
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal bg-dark text-light fade" id="add-user" tabindex="-1"
+                        aria-labelledby="add-userLabel" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content bg-dark">
+                                <div class="modal-header">
+                                    <h1 class="modal-title fs-5" id="add-userLabel">Add User
+                                        To Application</h1>
+                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                                        aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <form hx-post="/admin/add_user" hx-swap="none">
+                                        <div class="mb-3">
+                                            <input name="app_id" type="hidden" value=""
+                                                class="form-control bg-secondary text-light" id="app_id_add_user">
+                                            <label for="recipient-name">Select User</label>
+                                            <select name="username" class="form-select">
+                                                <% if (user_list.length> 0) { %>
+                                                    <% user_list.forEach(function(user) { %>
+                                                        <option value="<%= user.username %>">
+                                                            <%= user.username %>
+                                                        </option>
+                                                        <% }) %>
+                                                            <% } %>
+                                            </select>
+                                        </div>
+                                        <p id="error-message" style="color: red; opacity: 0.8; font-weight: 800;">
+                                        </p>
+                                        <button type="submit" class="btn btn-success">Register</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal bg-dark text-light fade" id="register-app" tabindex="-1"
+                        aria-labelledby="register-appLabel" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content bg-dark">
+                                <div class="modal-header">
+                                    <h1 class="modal-title fs-5" id="register-appLabel">Register App</h1>
                                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
                                         aria-label="Close"></button>
                                 </div>
                                 <div class="modal-body">
                                     <form hx-post="/register/application" hx-swap="none">
                                         <div class="mb-3">
-                                            <label for="recipient-name" class="col-form-label">App Name</label>
+                                            <label for="app-name" class="col-form-label">App Name</label>
                                             <input name="app_name" type="text"
-                                                class="form-control bg-secondary text-light" id="recipient-name">
+                                                class="form-control bg-secondary text-light" id="app-name">
                                         </div>
                                         <div class="mb-3">
-                                            <label for="recipient-name" class="col-form-label">App Type</label>
+                                            <label for="app-type" class="col-form-label">App Type</label>
                                             <input name="app_type" type="text"
-                                                class="form-control bg-secondary text-light" id="recipient-name">
+                                                class="form-control bg-secondary text-light" id="app-type">
                                         </div>
                                         <div class="mb-3">
-                                            <label for="recipient-name" class="col-form-label">App Url</label>
+                                            <label for="app-url" class="col-form-label">App URL</label>
                                             <input name="app_url" type="text"
-                                                class="form-control bg-secondary text-light" id="recipient-name">
+                                                class="form-control bg-secondary text-light" id="app-url">
                                         </div>
                                         <p id="error-message" style="color: red; opacity: 0.8; font-weight: 800;"></p>
                                         <button type="submit" class="btn btn-success">Register</button>
@@ -207,17 +274,15 @@
                             </div>
                         </div>
                     </div>
-
                 </div>
-
             </div>
     </main>
     <script src="/js/sidebars.js"></script>
     <script src="/js/bootstrap.bundle.min.js"></script>
     <script src="/js/htmx.min.js"></script>
 
-
     <script>
+        // listening to api call request
         document.addEventListener('htmx:afterRequest', (event) => {
             const jsonData = event.detail.xhr.responseText;
             try {
@@ -225,27 +290,87 @@
                 if (parsedData.error) {
                     document.getElementById('error-message').innerHTML = parsedData.error;
                 }
-                if (parsedData.message === "Application registered successfully") {
+                if (parsedData.message === "User added successfully to application") {
                     // Get the existing modal instance
-                    var modalElement = document.getElementById('exampleModal');
+                    var modalElement = document.getElementById('add-user');
                     var modalInstance = bootstrap.Modal.getInstance(modalElement) || new bootstrap.Modal(modalElement);
-
                     // Close the modal
                     modalInstance.hide();
-
-                    // added interval
+                    // Reload the page after a short delay
+                    setTimeout(function () {
+                        window.location.reload();
+                    }, 300);
+                }
+                if (parsedData.message === "Application registered successfully") {
+                    // Get the existing modal instance
+                    var modalElement = document.getElementById('register-app');
+                    var modalInstance = bootstrap.Modal.getInstance(modalElement) || new bootstrap.Modal(modalElement);
+                    // Close the modal
+                    modalInstance.hide();
+                    // Reload the page after a short delay
                     setTimeout(function () {
                         window.location.reload();
                     }, 300);
                 }
             } catch (error) {
                 console.error('Invalid JSON:', error);
-                document.getElementById('json-display').innerText = 'Failed to parse JSON';
+                document.getElementById('error-message').innerText = 'Failed to parse JSON';
             }
         });
+
+        function setAppDetails(appId) {
+
+            fetch('/admin/user_application/' + appId)
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data)
+                    const app_details_dom = document.getElementById('app-details');
+                    // Clear previous content
+                    app_details_dom.innerHTML = '';
+
+                    // Now create another table for user details if the user list is part of the response
+                    const userTable = document.createElement('table');
+                    userTable.classList.add('table', 'table-dark'); // Different styling for user table
+
+                    // Create the table header for user details
+                    const userThead = document.createElement('thead');
+                    const userHeaderRow = document.createElement('tr');
+
+                    // Define the headers for the user details
+                    const userHeaders = ['Username', 'Is Active', 'Created At', 'Updated At'];
+                    userHeaders.forEach(headerText => {
+                        const th = document.createElement('th');
+                        th.innerText = headerText;
+                        userHeaderRow.appendChild(th);
+                    });
+                    userThead.appendChild(userHeaderRow);
+                    userTable.appendChild(userThead);
+
+                    // Create the table body for user details
+                    const userTbody = document.createElement('tbody');
+
+                    // Assuming 'data.users' contains the array of user objects
+                    data.forEach(user => {
+                        const userRow = document.createElement('tr');
+                        userRow.innerHTML = `
+                    <td>${user.username}</td>
+                    <td>${user.is_active ? 'Yes' : 'No'}</td>
+                    <td>${new Date(user.created_at).toLocaleString()}</td>
+                    <td>${new Date(user.updated_at).toLocaleString()}</td>
+                `;
+                        userTbody.appendChild(userRow);
+                    });
+
+                    userTable.appendChild(userTbody);
+                    app_details_dom.appendChild(userTable); // Append user details table
+                })
+        }
+
+        function add_user(appId) {
+            const input_hidden = document.getElementById('app_id_add_user');
+            input_hidden.value = appId;
+        }
     </script>
-
-
 </body>
 
 </html>
