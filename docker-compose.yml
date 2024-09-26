@@ -10,7 +10,7 @@ services:
     ports:
       - "3301:3306"
   app:
-    build: .
+    image: darmajr94/coretify
     ports:
       - "3000:3000"
     environment:
