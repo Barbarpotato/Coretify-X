@@ -158,9 +158,9 @@ This document outlines the API for user login in the Express application, suppor
 
 ### Client Login
 
-| Method | Endpoint     | Request Body                       | Response Body                                | Description                                              |
-|--------|--------------|------------------------------------|----------------------------------------------|----------------------------------------------------------|
-| POST   | `/login/client` | `{ "username": "<USERNAME>", "password": "<PASSWORD>" }` | `{"status": "ok", "token": "<JWT_TOKEN>"}` or `{"message": "Invalid credentials"}` or `{"error": "User is not active"}` | Validates client credentials. Returns a JWT token if valid. |
+| Method | Endpoint         | Request Body                                                                                             | Response Body                                                                                                | Description                                               |
+|--------|------------------|---------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------|
+| POST   | `/login/client`   | `{ "username": "<USERNAME>", "password": "<PASSWORD>", "app_token": "<APPLICATION_TOKEN>" }`             | `{"status": "ok", "token": "<JWT_TOKEN>", "application_token": "<APPLICATION_ID>"}` or `{"error": "Invalid Parameters"}` | Logs in the client user and returns a JWT and application token. |
 
 ## Request Body
 
@@ -169,8 +169,9 @@ This document outlines the API for user login in the Express application, suppor
 - `password` (string): The password for the admin.
 
 ### Client Login
-- `username` (string): The username for the client.
-- `password` (string): The password for the client.
+- `username` (string): The username for the client account.
+- `password` (string): The password for the client account.
+- `app_token` (string): The application token representing the client's access to a specific application.
 
 ## Response Body
 
@@ -185,7 +186,8 @@ This document outlines the API for user login in the Express application, suppor
 ### Client Login
 - **Success (200)**:
   - `status`: "ok"
-  - `token`: The JWT token for the client session.
+  - `token`: The JWT token for the authenticated session.
+  - `application_token`: The `app_id` associated with the user's application.
 
 - **User Not Active (401)**:
   - `message`: "User is not active" when the user account is inactive.
