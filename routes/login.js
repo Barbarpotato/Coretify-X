@@ -38,39 +38,60 @@ login.route('/admin')
 login.route('/client')
     .post(async (req, res) => {
 
-        const { username, password } = req.body;
+        const { username, password, app_token } = req.body;
 
         // validate the request body
-        if (!username || !password) {
-            return res.status(400).json({ error: 'Username and password are required' });
+        if (!username || !password || !app_token) {
+            return res.status(400).json({ error: 'Invalid Parameters' });
         }
 
         try {
-            // Find the user in the database
-            const currentUser = await prisma.user.findUnique({
-                where: { username },
+
+            // Find the application access for the user and only get app_id
+            const user_application = await prisma.userApplication.findMany({
+                where: {
+                    user: {
+                        username: username
+                    },
+                    application: {
+                        app_id: app_token
+                    }
+                },
+                select: {
+                    user: {
+                        select: {
+                            username: true,
+                            password: true
+                        }
+                    },
+                    application: {
+                        select: {
+                            app_id: true  // Only selecting app_id
+                        }
+                    }
+                }
             });
 
-            // check the active status
-            if (!currentUser.is_active) {
-                return res.status(401).json({ message: 'User is not active' });
-            }
-
-            // Check if user exists
-            if (!currentUser) {
+            // check if user_application data exist
+            if (user_application.length === 0) {
                 return res.status(401).json({ message: 'Invalid credentials' });
             }
 
+            // Extract the data from sql query
+            const username_query = user_application[0].user.username;
+            const password_query = user_application[0].user.password;
+            const application_id_query = user_application[0].application.app_id;
+
             // Compare the hashed password
-            const isPasswordValid = await bcrypt.compare(password, currentUser.password);
+            const isPasswordValid = await bcrypt.compare(password, password_query);
             if (!isPasswordValid) {
                 return res.status(401).json({ message: 'Invalid credentials' });
             }
 
             // Generate a JWT token
-            const token = jwt.sign({ username }, process.env.JWT_SECRET, { expiresIn: '1h' });
+            const token = jwt.sign({ username_query }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
-            res.json({ status: 'ok', token: token });
+            res.json({ status: 'ok', token: token, application_token: application_id_query });
         } catch (error) {
             console.error(error);
             res.status(500).json({ error: 'Internal Server Error' });
