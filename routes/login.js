@@ -51,7 +51,8 @@ login.route('/client')
             const user_application = await prisma.userApplication.findMany({
                 where: {
                     user: {
-                        username: username
+                        username: username,
+                        is_active: true
                     },
                     application: {
                         app_id: app_token

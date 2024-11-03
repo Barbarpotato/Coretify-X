@@ -1,5 +1,6 @@
 import express from 'express';
 import cookieParser from 'cookie-parser';
+import helmet from 'helmet'
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import demo from './routes/demo.js';
@@ -19,6 +20,22 @@ const __dirname = dirname(__filename);
 app.set("views", __dirname + "/views");
 app.set("view engine", "ejs");
 app.use(express.static(__dirname + "/public"));
+
+app.use(helmet({
+    hidePoweredBy: true, // Hide the X-Powered-By header
+    frameguard: {         // Configure frameguard
+        action: 'deny'
+    },
+    xssFilter: true,     // Enable X-XSS-Protection header
+    noSniff: true,      // Add noSniff middleware to prevent MIME-type sniffing
+    ieNoOpen: true,     // Set X-Download-Options to noopen
+    hsts: {              // Enable and configure HSTS
+        maxAge: 90 * 24 * 60 * 60,
+        force: true
+    },
+    dnsPrefetchControl: false, // Disable DNS prefetching
+    noCache: true,      // Enable noCache
+}));
 
 // Use cookie-parser middleware
 app.use(cookieParser());
