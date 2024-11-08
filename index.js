@@ -23,18 +23,6 @@ app.use(express.static(__dirname + "/public"));
 
 app.use(helmet({
     hidePoweredBy: true, // Hide the X-Powered-By header
-    frameguard: {         // Configure frameguard
-        action: 'deny'
-    },
-    xssFilter: true,     // Enable X-XSS-Protection header
-    noSniff: true,      // Add noSniff middleware to prevent MIME-type sniffing
-    ieNoOpen: true,     // Set X-Download-Options to noopen
-    hsts: {              // Enable and configure HSTS
-        maxAge: 90 * 24 * 60 * 60,
-        force: true
-    },
-    dnsPrefetchControl: false, // Disable DNS prefetching
-    noCache: true,      // Enable noCache
 }));
 
 // Use cookie-parser middleware
