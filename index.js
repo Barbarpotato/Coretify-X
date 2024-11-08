@@ -4,6 +4,7 @@ import helmet from 'helmet'
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import demo from './routes/demo.js';
+const crypto = require('crypto');
 import admin from './routes/admin.js';
 import register from './routes/register.js';
 import login from './routes/login.js';
@@ -23,6 +24,19 @@ app.use(express.static(__dirname + "/public"));
 
 app.use(helmet({
     hidePoweredBy: true, // Hide the X-Powered-By header
+    frameguard: {         // Configure frameguard
+        action: 'deny'
+    },
+    xssFilter: true,     // Enable X-XSS-Protection header
+    noSniff: true,      // Add noSniff middleware to prevent MIME-type sniffing
+    ieNoOpen: true,     // Set X-Download-Options to noopen
+    hsts: {              // Enable and configure HSTS
+        maxAge: 90 * 24 * 60 * 60,
+        force: true
+    },
+    dnsPrefetchControl: false, // Disable DNS prefetching
+    noCache: true,      // Enable noCache
+    contentSecurityPolicy: false,
 }));
 
 // Use cookie-parser middleware
