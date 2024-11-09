@@ -4,7 +4,6 @@ import helmet from 'helmet'
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import demo from './routes/demo.js';
-const crypto = require('crypto');
 import admin from './routes/admin.js';
 import register from './routes/register.js';
 import login from './routes/login.js';
