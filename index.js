@@ -3,7 +3,7 @@ import cookieParser from 'cookie-parser';
 import helmet from 'helmet'
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
-import limiter from './redis.js';
+import limiter from './cache.js';
 import demo from './routes/demo.js';
 import admin from './routes/admin.js';
 import register from './routes/register.js';

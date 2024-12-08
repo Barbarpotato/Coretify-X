@@ -14,9 +14,12 @@ JWT_SECRET_ADMIN=VALUES
 JWT_SECRET=VALUES
 ADMIN_USERNAME=VALUES
 ADMIN_PASSWORD=VALUES
+REDIS_HOST=VALUES
+REDIS_PASSWORD=VALUES
+REDIS_PORT=VALUES
 DATABASE_URL=VALUES
 ```
-In Coretify, the environment variables include two distinct JWT secrets: one for regular users and one for admin users. The JWT_SECRET is used for authenticating and issuing tokens for regular users, allowing them to log in and manage their accounts. On the other hand, the JWT_ADMIN_SECRET is specifically designated for admin-level operations. This secret is required for admins to perform sensitive actions such as registering new applications or users, as well as executing create operations within the Coretify environment. By having separate JWT secrets for regular users and admins, Coretify ensures a secure separation of privileges, preventing unauthorized access to critical administrative functions.
+The .env file for Coretify defines critical environment variables to ensure secure and efficient functionality. It includes two JWT secrets—JWT_SECRET_ADMIN for admin-level actions like creating users or applications, and JWT_SECRET for authenticating regular users. Admin credentials (ADMIN_USERNAME and ADMIN_PASSWORD) provide access to administrative operations. Redis configurations (REDIS_HOST, REDIS_PASSWORD, REDIS_PORT) support caching and rate-limiting, while DATABASE_URL specifies the MySQL connection string for Coretify’s database, ensuring secure communication via SSL. This setup maintains a clear separation of privileges and integrates external services seamlessly for scalability and security.
 
 # Mysql Support
 Coretify currently supports MySQL as the database system. The database schema is managed using Prisma, which provides a structured and flexible way to interact with the database. You are free to modify and extend the database architecture as needed for your specific use case. The current architecture consists of three main models: User, Application, and UserApplication.
@@ -63,6 +66,11 @@ This model creates a link between users and applications, allowing Coretify to t
 
 This structure allows for efficient user and application management, with clear relationships between users and the applications they can access. The use of Prisma ensures that the database schema can be easily modified as needed to accommodate future requirements.
 
+# Coretify Rate Limiter Configuration
+The rate limiter configuration ensures that API endpoints are protected from excessive or malicious requests while leveraging Redis for scalability. This rate-limiter feature is optional. in `coretify.config.js` you can setup the `useRateLimit` to `false` or `true`.
+
+the rate limiter in corefity only support `redis` to store the key-value pair of inbound ip address to the server. You can find the redis configuration in `cache.js` file. If you dont want to use redis, you can also modified `cache.js` file to a custom value where the key-value is store.
+
 # Docker Intallation Setup
 You can also install the docker image for this project instead cloning the repo from this link : <a href="https://hub.docker.com/r/darmajr94/coretify" target="_blank">darmajr94/coretify</a>
 
@@ -79,22 +87,43 @@ services:
       MYSQL_DATABASE: coretify
     ports:
       - "3301:3306"
+      
+  redis:
+    image: redis:latest
+    restart: always
+    ports:
+      - "6379:6379"
+    environment:
+      REDIS_PASSWORD: "root"  # Set Redis password
+    command: redis-server --requirepass root  # Redis will require this password
+    volumes:
+      - redis-data:/data  # Persist Redis data in a Docker volume
+
   app:
     image: darmajr94/coretify
     ports:
       - "3000:3000"
     environment:
-      ADMIN_USERNAME : admin
-      ADMIN_PASSWORD : root
-      JWT_SECRET_ADMIN : admin_root
-      JWT_SECRET : root
+      ADMIN_USERNAME: admin
+      ADMIN_PASSWORD: root
+      JWT_SECRET_ADMIN: admin_root
+      JWT_SECRET: root
       DATABASE_URL: mysql://root:root@mysql:3306/coretify
+      REDIS_HOST: redis  # Use Redis service name as hostname
+      REDIS_PORT: 6379   # Default Redis port
+      REDIS_PASSWORD: root  # Redis password
     depends_on:
       - mysql
+      - redis
     command: >
       sh -c "
       npx prisma migrate deploy &&
       npm run start"
+
+volumes:
+  redis-data:
+    driver: local
+
 ```
 
 # Coretify Configuration
@@ -106,6 +135,7 @@ The configuration for Coretify is managed through a single file that streamlines
 - origin: A function that specifies which origins are allowed to access the server. Currently, it is set to allow all origins (callback(null, true)).
 - allowedHeaders: Specifies which headers can be included in requests. This includes Content-Type and Authorization, essential for handling requests with JSON data and token-based authentication.
 - maxAge: Defines the duration (in seconds) that the CORS preflight request can be cached. In this configuration, it is set to 120 seconds (or 2 minutes).
+- Rate Limiting: The useRateLimit option is enabled (true) to enforce limits on the number of requests a client can make, helping prevent abuse or overloading the server (only support redis cache).
 
 This configuration file plays a crucial role in ensuring that Coretify operates securely and efficiently, making it easy to manage settings and sensitive information in one place
 
