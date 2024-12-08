@@ -2,7 +2,7 @@ import { rateLimit } from "express-rate-limit";
 import { RedisStore } from "rate-limit-redis";
 import RedisClient from "ioredis";
 import dotenv from 'dotenv';
-import { index } from "./coretify.config";
+import { index } from "./coretify.config.js";
 dotenv.config();
 
 // Configure Redis client
