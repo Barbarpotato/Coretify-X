@@ -21,5 +21,6 @@ export const index = {
         },
         allowedHeaders: ['Content-Type', 'Authorization'],
         maxAge: 120, // 120 seconds = 2 minutes
-    }
+    },
+    useRateLimit: true
 };
