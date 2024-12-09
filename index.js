@@ -3,7 +3,6 @@ import cookieParser from 'cookie-parser';
 import helmet from 'helmet'
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
-import limiter from './cache.js';
 import demo from './routes/demo.js';
 import admin from './routes/admin.js';
 import register from './routes/register.js';
@@ -48,20 +47,18 @@ app.use(express.json());
 
 app.use(express.urlencoded({ extended: true }));
 
-app.use(limiter);
-
 app.use(cors(index.corsOptions));
-
-app.use('/demo', demo);
-app.use('/admin', admin);
-app.use('/register', register);
-app.use('/login', login);
-app.use('/auth', auth);
 
 app.get('/', (req, res) => {
     const data = { title: 'Coretify - Fast Auth Setup Application', message: 'Hello, Coretify!' };
     res.render('index', data);  // Render the index.ejs view
 });
+
+app.use('/admin', admin);
+app.use('/demo', demo);
+app.use('/register', register);
+app.use('/login', login);
+app.use('/auth', auth);
 
 app.listen(index.serverPort, () => {
     console.log(`Server is running at http://localhost:${index.serverPort}`);

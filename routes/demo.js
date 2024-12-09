@@ -1,6 +1,6 @@
 import express from 'express';
 import jwt from 'jsonwebtoken';
-import bcrypt from 'bcryptjs';
+import { limiter } from './middleware.js';
 import { index } from '../coretify.config.js';
 import bodyParser from 'body-parser';
 
@@ -9,7 +9,7 @@ const demo = express.Router();
 demo.use(bodyParser.json());
 
 demo.route('/login')
-    .post(async (req, res) => {
+    .post(limiter, async (req, res) => {
 
         const { username, password } = req.body;
 
@@ -24,7 +24,7 @@ demo.route('/login')
     })
 
 demo.route('/auth')
-    .post((req, res) => {
+    .post(limiter, (req, res) => {
 
         const { token } = req.body;
 

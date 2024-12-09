@@ -69,7 +69,7 @@ This structure allows for efficient user and application management, with clear 
 # Coretify Rate Limiter Configuration
 The rate limiter configuration ensures that API endpoints are protected from excessive or malicious requests while leveraging Redis for scalability. This rate-limiter feature is optional. in `coretify.config.js` you can setup the `useRateLimit` to `false` or `true`.
 
-the rate limiter in corefity only support `redis` to store the key-value pair of inbound ip address to the server. You can find the redis configuration in `cache.js` file. If you dont want to use redis, you can also modified `cache.js` file to a custom value where the key-value is store.
+the rate limiter in corefity only support `redis` to store the key-value pair of inbound ip address to the server. You can find the redis configuration in `cache.config.js` file. If you dont want to use redis, You can also modified `cache.config.js` and `limiter function` in `routes/middleware.js` file to a custom value where the key-value is store.
 
 # Docker Intallation Setup
 You can also install the docker image for this project instead cloning the repo from this link : <a href="https://hub.docker.com/r/darmajr94/coretify" target="_blank">darmajr94/coretify</a>

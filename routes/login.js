@@ -4,6 +4,7 @@ import { PrismaClient } from '@prisma/client';
 import { index } from '../coretify.config.js';
 import bcrypt from 'bcryptjs';
 import bodyParser from 'body-parser';
+import { limiter } from './middleware.js';
 
 const login = express.Router();
 const prisma = new PrismaClient();
@@ -14,7 +15,7 @@ login.route('/admin')
     .get((_req, res) => {
         res.render("partials/login.ejs", { title: "Coretify - Login Admin" });
     })
-    .post((req, res) => {
+    .post(limiter, (req, res) => {
 
         const { username, password } = req.body;
 
@@ -36,7 +37,7 @@ login.route('/admin')
     })
 
 login.route('/client')
-    .post(async (req, res) => {
+    .post(limiter, async (req, res) => {
 
         const { username, password, app_token } = req.body;
 

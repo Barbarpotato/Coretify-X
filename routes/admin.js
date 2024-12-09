@@ -1,6 +1,6 @@
 import express from 'express';
 import jwt from 'jsonwebtoken';
-import { authenticateToken } from './middleware.js';
+import { authenticateToken, limiter } from './middleware.js';
 import { PrismaClient } from '@prisma/client';
 import { index } from '../coretify.config.js';
 import bodyParser from 'body-parser';
@@ -246,7 +246,7 @@ admin.route('/logout')
     })
 
 admin.route('/auth')
-    .post((req, res) => {
+    .post(limiter, (req, res) => {
 
         const { token } = req.body;
 
