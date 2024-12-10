@@ -9,17 +9,18 @@ import { limiter } from './middleware.js';
 const login = express.Router();
 const prisma = new PrismaClient();
 
+// Middleware to parse JSON bodies
 login.use(bodyParser.json());
 
+// Route: Admin Login
 login.route('/admin')
     .get((_req, res) => {
         res.render("partials/login.ejs", { title: "Coretify - Login Admin" });
     })
     .post(limiter, (req, res) => {
-
         const { username, password } = req.body;
 
-        // the admin account is directly checked trough env variables
+        // Validate admin credentials using environment variables
         if (username !== process.env.ADMIN_USERNAME || password !== process.env.ADMIN_PASSWORD) {
             return res.status(401).json({ message: 'Invalid credentials' });
         }
@@ -27,32 +28,32 @@ login.route('/admin')
         // Generate a JWT token
         const token = jwt.sign({ username }, index.jwtSecretAdmin, { expiresIn: '1h' });
 
+        // Set the token as an HTTP-only cookie
         res.cookie('token', token, {
-            httpOnly: true,  // Helps prevent client-side script access
-            secure: true,    // Cookie only sent over HTTPS (use in production)
+            httpOnly: true,
+            secure: true, // Use HTTPS in production
             maxAge: 60 * 60 * 1000 // 1 hour expiry
         });
 
-        return res.json({ status: 'ok', token: token });
-    })
+        return res.json({ status: 'ok', token });
+    });
 
+// Route: Client Login
 login.route('/client')
     .post(limiter, async (req, res) => {
-
         const { username, password, app_token } = req.body;
 
-        // validate the request body
+        // Validate the request body
         if (!username || !password || !app_token) {
             return res.status(400).json({ error: 'Invalid Parameters' });
         }
 
         try {
-
-            // Find the application access for the user and only get app_id
-            const user_application = await prisma.userApplication.findMany({
+            // Query the user application data
+            const userApplication = await prisma.userApplication.findMany({
                 where: {
                     user: {
-                        username: username,
+                        username,
                         is_active: true
                     },
                     application: {
@@ -68,37 +69,36 @@ login.route('/client')
                     },
                     application: {
                         select: {
-                            app_id: true  // Only selecting app_id
+                            app_id: true
                         }
                     }
                 }
             });
 
-            // check if user_application data exist
-            if (user_application.length === 0) {
+            // Validate if user application data exists
+            if (userApplication.length === 0) {
                 return res.status(401).json({ message: 'Invalid credentials' });
             }
 
-            // Extract the data from sql query
-            const username_query = user_application[0].user.username;
-            const password_query = user_application[0].user.password;
-            const application_id_query = user_application[0].application.app_id;
+            // Extract relevant data
+            const { username: usernameQuery, password: hashedPassword } = userApplication[0].user;
+            const { app_id: applicationIdQuery } = userApplication[0].application;
 
             // Compare the hashed password
-            const isPasswordValid = await bcrypt.compare(password, password_query);
+            const isPasswordValid = await bcrypt.compare(password, hashedPassword);
             if (!isPasswordValid) {
                 return res.status(401).json({ message: 'Invalid credentials' });
             }
 
             // Generate a JWT token
-            const token = jwt.sign({ username_query }, process.env.JWT_SECRET, { expiresIn: '1h' });
+            const token = jwt.sign({ username: usernameQuery }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
-            res.json({ status: 'ok', token: token, application_token: application_id_query });
+            // Respond with the token and application token
+            return res.json({ status: 'ok', token, application_token: applicationIdQuery });
         } catch (error) {
-            console.error(error);
-            res.status(500).json({ error: 'Internal Server Error' });
+            console.error('Error during client login:', error);
+            return res.status(500).json({ error: 'Internal Server Error' });
         }
-
-    })
+    });
 
 export default login;

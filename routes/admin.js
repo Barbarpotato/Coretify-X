@@ -246,7 +246,7 @@ admin.route('/logout')
     })
 
 admin.route('/auth')
-    .post(limiter, (req, res) => {
+    .post((req, res) => {
 
         const { token } = req.body;
 
@@ -257,7 +257,10 @@ admin.route('/auth')
         // Verify the JWT token without using middleware
         jwt.verify(token, index.jwtSecret, (err, user) => {
             if (err) {
-                return res.status(403).json({ message: 'Invalid token' });
+                // Apply limiter only when token verification fails
+                return limiter(req, res, () => {
+                    return res.status(403).json({ message: 'Invalid token' });
+                });
             }
 
             // Token is valid, you can use the user information

@@ -48,8 +48,8 @@ export function authenticateToken(req, res, next) {
  * the middleware simply calls `next()` to bypass the rate limiting.
  */
 export const limiter = index.useRateLimit ? rateLimit({
-    windowMs: 3 * 60 * 1000,  // 3 minutes
-    max: 15,  // limit each IP to 15 requests per 3 minutes
+    windowMs: 120 * 60 * 1000,  // 120 minutes
+    max: 15,  // limit each IP to 15 requests per 120 minutes
     keyGenerator: (req) => {
         const ip = req.ip || req.headers['x-forwarded-for'] || req.connection.remoteAddress;
         return ip;

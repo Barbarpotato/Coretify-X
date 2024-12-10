@@ -1,4 +1,4 @@
-import { authenticateToken } from '../routes/middleware.js';
+import { authenticateToken, limiter } from '../routes/middleware.js';
 import { PrismaClient } from '@prisma/client';
 import { v4 as uuidv4 } from 'uuid';
 import express from 'express';
@@ -11,7 +11,7 @@ const prisma = new PrismaClient();
 register.use(bodyParser.json());
 
 register.route('/application')
-    .post(authenticateToken, async (req, res) => {
+    .post(authenticateToken, limiter, async (req, res) => {
 
         const { app_name, app_type, app_url } = req.body;
 
@@ -39,7 +39,7 @@ register.route('/application')
     })
 
 register.route('/user')
-    .post(authenticateToken, async (req, res) => {
+    .post(authenticateToken, limiter, async (req, res) => {
         const { username, password } = req.body;
 
         // validate the request body

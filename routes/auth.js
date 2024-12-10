@@ -9,8 +9,7 @@ const auth = express.Router();
 auth.use(bodyParser.json());
 
 auth.route('')
-    .post(limiter, (req, res) => {
-
+    .post((req, res, next) => {
         const { token } = req.body;
 
         if (!token) {
@@ -20,13 +19,20 @@ auth.route('')
         // Verify the JWT token without using middleware
         jwt.verify(token, index.jwtSecret, (err, user) => {
             if (err) {
-                return res.status(403).json({ message: 'Invalid token' });
+                // Apply limiter only when token verification fails
+                return limiter(req, res, () => {
+                    return res.status(403).json({ message: 'Invalid token' });
+                });
             }
 
-            // Token is valid, you can use the user information
-            res.json({ message: 'Token is valid', user });
+            // Token is valid, continue with the request
+            // Proceed to the next middleware or route handler
+            req.user = user; // Add user info to the request
+            next();
         });
-
-    })
+    }, (req, res) => {
+        // This block will only run if the token is valid
+        res.json({ message: 'Token is valid', user: req.user });
+    });
 
 export default auth;
