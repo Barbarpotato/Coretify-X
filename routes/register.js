@@ -12,15 +12,18 @@ register.use(bodyParser.json());
 
 register.route('/application')
     .post(authenticateToken, limiter, async (req, res) => {
-
-        const { app_name, app_type, app_url } = req.body;
-
-        // validate the request body
-        if (!app_name || !app_type || !app_url) {
-            return res.status(400).json({ error: 'All fields are required' });
-        }
-
         try {
+
+            const { app_name, app_type, app_url } = req.body;
+
+            // validate the request body
+            if (!app_name || !app_type || !app_url) {
+                return limiter(req, res, () => {
+                    return res.status(400).json({ message: 'Invalid Parameters' });
+                });
+            }
+
+            // insert application to db
             const newApplication = await prisma.application.create({
                 data: {
                     app_id: uuidv4(),
@@ -31,7 +34,6 @@ register.route('/application')
             });
 
             return res.status(201).json({ message: 'Application registered successfully' });
-
         } catch (error) {
             console.error(error)
             return res.status(500).json({ error: 'Application registration failed' });
@@ -40,17 +42,21 @@ register.route('/application')
 
 register.route('/user')
     .post(authenticateToken, limiter, async (req, res) => {
-        const { username, password } = req.body;
-
-        // validate the request body
-        if (!username || !password) {
-            return res.status(400).json({ error: 'Username and password are required' });
-        }
-
-        // Hash the password
-        const hashedPassword = await bcrypt.hash(password, 10);
-
         try {
+
+            const { username, password } = req.body;
+
+            // validate the request body
+            if (!username || !password) {
+                return limiter(req, res, () => {
+                    return res.status(400).json({ message: 'Invalid Parameters' });
+                });
+            }
+
+            // Hash the password
+            const hashedPassword = await bcrypt.hash(password, 10);
+
+            // insert user to db
             const newUser = await prisma.user.create({
                 data: {
                     username,
@@ -64,6 +70,52 @@ register.route('/user')
             if (error.code === 'P2002' && error.meta.target === 'User_username_key') {
                 return res.status(400).json({ error: 'Username already exists' });
             }
+            return res.status(500).json({ error: 'User registration failed' });
+        }
+    })
+
+register.route('/signup')
+    .post(async (req, res) => {
+        try {
+
+            const { username, password, signup_key } = req.body;
+
+            // validate the request body
+            if (!username || !password || !signup_key) {
+                return limiter(req, res, () => {
+                    return res.status(400).json({ message: 'Invalid Parameters' });
+                });
+            }
+
+            // -- Update the signup key and mark it as used if valid
+            const updatedSignupKey = await prisma.signupKey.update({
+                where: { key: signup_key, usedAt: null },
+                data: { usedAt: new Date() },
+            }).catch(() => {
+                // Handle invalid or already-used signup keys
+                throw new Error('Invalid Signup Key');
+            });
+
+            // Hash the password
+            const hashedPassword = await bcrypt.hash(password, 10);
+
+            // insert user to db
+            const newUser = await prisma.user.create({
+                data: {
+                    username,
+                    password: hashedPassword, // Store the hashed password
+                },
+            });
+
+            return res.status(201).json({ message: 'User registered successfully' });
+        } catch (error) {
+
+            if (error.message === 'Invalid Signup Key') {
+                return limiter(req, res, () => {
+                    return res.status(403).json({ message: error.message });
+                });
+            }
+
             return res.status(500).json({ error: 'User registration failed' });
         }
     })

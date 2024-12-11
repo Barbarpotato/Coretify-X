@@ -47,3 +47,10 @@ model UserApplication {
   user        User        @relation(fields: [user_id], references: [id], onDelete: Cascade)
   application Application @relation(fields: [application_id], references: [id], onDelete: Cascade)
 }
+
+model SignupKey {
+  id        Int       @id @default(autoincrement())
+  key       String    @unique
+  createdAt DateTime  @default(now())
+  usedAt    DateTime?
+}

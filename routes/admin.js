@@ -1,5 +1,6 @@
 import express from 'express';
 import jwt from 'jsonwebtoken';
+import { v4 as uuidv4 } from 'uuid';
 import { authenticateToken, limiter } from './middleware.js';
 import { PrismaClient } from '@prisma/client';
 import { index } from '../coretify.config.js';
@@ -243,6 +244,22 @@ admin.route('/logout')
     .get(authenticateToken, (req, res) => {
         res.clearCookie('token');
         res.render("partials/login.ejs", { title: "Coretify - Login Admin" });
+    })
+
+admin.route('/generate_signup_key')
+    .get(authenticateToken, async (req, res) => {
+
+        try {
+            const key = uuidv4();
+            await prisma.signupKey.create({
+                data: {
+                    key,
+                },
+            });
+            return res.send(key);
+        } catch (error) {
+            return res.status(500).json({ error: 'Internal Server Error' });
+        }
     })
 
 admin.route('/auth')

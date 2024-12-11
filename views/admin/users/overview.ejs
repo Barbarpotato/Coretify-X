@@ -115,8 +115,15 @@
                     <h3 style="color: yellowgreen;">Users Overview</h3>
 
                     <div class="mt-4">
-                        <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal"
-                            data-bs-target="#exampleModal" data-bs-whatever="@mdo">Register User</button>
+                        <div>
+                            <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal"
+                                data-bs-target="#exampleModal" data-bs-whatever="@mdo">Register User</button>
+                            <button class="btn btn-outline-success btn-sm" hx-get="/admin/generate_signup_key"
+                                hx-target="#modalContent" hx-trigger="click" data-bs-toggle="modal"
+                                data-bs-target="#generate_token_modal">
+                                Create Signup Key
+                            </button>
+                        </div>
                         <table class="table table-dark table-hover p-4">
                             <thead>
                                 <tr>
@@ -191,6 +198,7 @@
                         </table>
                     </div>
 
+                    <!-- REGISTER USER MODAL -->
                     <div class="modal bg-dark text-light fade" id="exampleModal" tabindex="-1"
                         aria-labelledby="exampleModalLabel" aria-hidden="true">
                         <div class="modal-dialog">
@@ -219,6 +227,30 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- SIGNUP KEY GENERATOR -->
+                    <div class="modal bg-dark text-light fade" id="generate_token_modal" tabindex="-1"
+                        aria-labelledby="exampleModalLabel" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content bg-dark">
+                                <div class="modal-header">
+                                    <h1 class="modal-title fs-5" id="exampleModalLabel">Signup Key </h1>
+                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                                        aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <p style="color: yellowgreen;" class="fs-5">Share this Signup key to responsible
+                                        users to signup in Coretify
+                                        platform without Admin intervention.
+                                    </p>
+                                    <div class="shadow mb-3 bg-body rounded">
+                                        <p class="fs-5" style="font-weight: bolder; color:black;" id="modalContent"></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
 
                 </div>
 

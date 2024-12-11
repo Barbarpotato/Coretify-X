@@ -22,7 +22,7 @@ DATABASE_URL=VALUES
 The .env file for Coretify defines critical environment variables to ensure secure and efficient functionality. It includes two JWT secrets—JWT_SECRET_ADMIN for admin-level actions like creating users or applications, and JWT_SECRET for authenticating regular users. Admin credentials (ADMIN_USERNAME and ADMIN_PASSWORD) provide access to administrative operations. Redis configurations (REDIS_HOST, REDIS_PASSWORD, REDIS_PORT) support caching and rate-limiting, while DATABASE_URL specifies the MySQL connection string for Coretify’s database, ensuring secure communication via SSL. This setup maintains a clear separation of privileges and integrates external services seamlessly for scalability and security.
 
 # Mysql Support
-Coretify currently supports MySQL as the database system. The database schema is managed using Prisma, which provides a structured and flexible way to interact with the database. You are free to modify and extend the database architecture as needed for your specific use case. The current architecture consists of three main models: User, Application, and UserApplication.
+Coretify currently supports MySQL as the database system. The database schema is managed using Prisma, which provides a structured and flexible way to interact with the database. You are free to modify and extend the database architecture as needed for your specific use case. The current architecture consists of four main models: User, Application, UserApplication and SignupKey
 ```prisma
 model User {
   id         Int      @id @default(autoincrement())
@@ -35,7 +35,7 @@ model User {
   applications UserApplication[]
 }
 ```
-Additionally, a user can be associated with multiple applications through the UserApplication model.
+
 ```prisma
 model Application {
   id         Int      @id @default(autoincrement())
@@ -59,6 +59,16 @@ model UserApplication {
 
   user        User        @relation(fields: [user_id], references: [id], onDelete: Cascade)
   application Application @relation(fields: [application_id], references: [id], onDelete: Cascade)
+}
+
+```
+The signupKey is used to generate signup key token that can be use from the external resource to register their account. (Since the user registration handled by the Admin by default)
+```prisma
+model SignupKey {
+  id        Int       @id @default(autoincrement())
+  key       String    @unique
+  createdAt DateTime  @default(now())
+  usedAt    DateTime?
 }
 
 ```
@@ -238,6 +248,11 @@ curl -X POST http://<your-server>/login/admin -H "Content-Type: application/json
 # Registration API
 
 This document outlines the API for user and application registration in the Express application.
+There are 2 types of user registration:
+- Admin-level registration
+  - This type of registration is handled by Admin itself. The admin will create username and its password to the responsible user.
+- External-level registration
+  - This type of registration is handled by external resource (User). which means the Admin will generate the signup key and the signup key will be used by user to register their account (in this case, the user can freely pick the username and password as they want).
 
 ## Registration Routes
 
@@ -253,42 +268,8 @@ This document outlines the API for user and application registration in the Expr
 |--------|------------------|---------------------------------------------|------------------------------------------------|------------------------------------------------------|
 | POST   | `/register/user`  | `{ "username": "<USERNAME>", "password": "<PASSWORD>" }` | `{"message": "User registered successfully"}` or `{"error": "Username and password are required"}` or `{"error": "Username already exists"}` | Registers a new user account with the provided username and password. |
 
-## Request Body
+### Signup Registration
 
-### Application Registration
-- `app_name` (string): The name of the application.
-- `app_type` (string): The type of the application.
-- `app_url` (string): The URL of the application.
-
-### User Registration
-- `username` (string): The username for the new account.
-- `password` (string): The password for the new account.
-
-## Response Body
-
-### Application Registration
-- **Success (201)**:
-  - `message`: Confirmation that the application was registered successfully.
-
-- **Missing Fields (400)**:
-  - `error`: "All fields are required" when any field is missing.
-
-### User Registration
-- **Success (201)**:
-  - `message`: Confirmation that the user was registered successfully.
-
-- **Missing Fields (400)**:
-  - `error`: "Username and password are required" when either field is missing.
-
-- **Username Exists (400)**:
-  - `error`: "Username already exists" when trying to register a username that is already taken.
-
-## Usage Examples
-
-### Application Registration
-
-To register a new application, send a POST request to `/register/application`:
-
-```bash
-curl -X POST http://<your-server>/register/application -H "Content-Type: application/json" -d '{"app_name": "<APPLICATION_NAME>", "app_type": "<APPLICATION_TYPE>", "app_url": "<APPLICATION_URL>"}'
-```
+| Method | Endpoint         | Request Body                                               | Response Body                                           | Description                                                 |
+|--------|------------------|------------------------------------------------------------|--------------------------------------------------------|-------------------------------------------------------------|
+| POST   | `/register/signup` | `{ "username": "<USERNAME>", "password": "<PASSWORD>", "signup_key": "<SIGNUP_KEY>" }` | `{"message": "User registered successfully"}` or `{"error": "Invalid Signup Key"}` | Registers a new user account with a signup key and password. |
