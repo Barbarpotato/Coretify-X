@@ -4,7 +4,6 @@ import swaggerJsdoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
 import helmet from 'helmet'
 import { fileURLToPath } from 'url';
-import path from 'path';
 import { dirname } from 'path';
 import demo from './routes/demo.js';
 import admin from './routes/admin.js';
@@ -17,10 +16,9 @@ import cors from 'cors';
 const app = express();
 
 // Set the views directory
-const swaggerUiDistPath = path.join(require.resolve('swagger-ui-dist'), '..');
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-
+const _css_swagger = "https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.1.0/swagger-ui.min.css"
 
 app.set('trust proxy', true);
 
@@ -28,8 +26,6 @@ app.set("views", __dirname + "/views");
 app.set("view engine", "ejs");
 app.use(express.static(__dirname + "/public"));
 
-// Serve Swagger UI assets manually
-app.use('/swagger-ui', express.static(swaggerUiDistPath));
 
 // Swagger definition
 const swaggerOptions = {
@@ -49,7 +45,14 @@ const swaggerOptions = {
 const swaggerDocs = swaggerJsdoc(swaggerOptions);
 
 // Use Swagger UI to serve docs at /api-docs
-app.use('/documentations', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+app.use('/documentations', swaggerUi.serve, swaggerUi.setup(swaggerDocs,
+    {
+        customCss:
+            '.swagger-ui .opblock .opblock-summary-path-description-wrapper { align-items: center; display: flex; flex-wrap: wrap; gap: 0 10px; padding: 0 10px; width: 100%; }',
+        customCssUrl: _css_swagger,
+    }
+
+));
 
 app.use(helmet({
     hidePoweredBy: true, // Hide the X-Powered-By header
