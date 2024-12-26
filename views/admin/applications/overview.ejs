@@ -173,6 +173,11 @@
                                                                 class="dropdown-item" data-bs-target="#add-user"
                                                                 data-bs-whatever="@mdo">Add User</a>
                                                         </li>
+                                                        <li>
+                                                            <a type="button"
+                                                                onclick="remove_application('<%=app.id %>')"
+                                                                class="dropdown-item">Delete App</a>
+                                                        </li>
                                                     </ul>
                                                 </div>
 
@@ -189,7 +194,7 @@
                     </div>
 
 
-                    <div class="modal bg-dark text-light fade" id="details" tabindex="-1"
+                    <div class="modal bg-dark text-light fade  modal-lg" id="details" tabindex="-1"
                         aria-labelledby="register-appLabel" aria-hidden="true">
                         <div class="modal-dialog">
                             <div class="modal-content bg-dark">
@@ -276,6 +281,23 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Toast Component -->
+            <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+                <div id="liveToast" class="toast hide bg-dark text-light" role="alert" aria-live="assertive"
+                    aria-atomic="true">
+                    <div class="toast-header bg-dark text-light">
+                        <strong class="me-auto">System Message</strong>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"
+                            aria-label="Close"></button>
+                    </div>
+                    <div class="toast-body">
+                        <!-- Toast content goes here -->
+                    </div>
+                </div>
+            </div>
+
+
     </main>
     <script src="/js/sidebars.js"></script>
     <script src="/js/bootstrap.bundle.min.js"></script>
@@ -323,7 +345,6 @@
             fetch('/admin/user_application/' + appId)
                 .then(response => response.json())
                 .then(data => {
-                    console.log(data)
                     const app_details_dom = document.getElementById('app-details');
                     // Clear previous content
                     app_details_dom.innerHTML = '';
@@ -337,7 +358,7 @@
                     const userHeaderRow = document.createElement('tr');
 
                     // Define the headers for the user details
-                    const userHeaders = ['Username', 'Is Active', 'Created At', 'Updated At'];
+                    const userHeaders = ['Username', 'Is Active', 'Created At', 'Updated At', "Action"];
                     userHeaders.forEach(headerText => {
                         const th = document.createElement('th');
                         th.innerText = headerText;
@@ -357,6 +378,9 @@
                     <td>${user.is_active ? 'Yes' : 'No'}</td>
                     <td>${new Date(user.created_at).toLocaleString()}</td>
                     <td>${new Date(user.updated_at).toLocaleString()}</td>
+                    <td>
+                        <button class="btn btn-danger" onclick="remove_user(${user.user_id}, ${user.app_id})">Remove User</button>
+                    </td>
                 `;
                         userTbody.appendChild(userRow);
                     });
@@ -370,6 +394,75 @@
             const input_hidden = document.getElementById('app_id_add_user');
             input_hidden.value = appId;
         }
+
+        function remove_user(user_id, app_id) {
+            fetch('/admin/remove_user_application', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ user_id, app_id })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.message === "User removed successfully from application") {
+                        // Get the existing modal instance
+                        var modalElement = document.getElementById('add-user');
+                        var modalInstance = bootstrap.Modal.getInstance(modalElement) || new bootstrap.Modal(modalElement);
+                        // Close the modal
+                        modalInstance.hide();
+                        // Reload the page after a short delay
+                        setTimeout(function () {
+                            window.location.reload();
+                        }, 300);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                })
+        }
+
+        function remove_application(app_id) {
+
+            var toastElement = document.getElementById('liveToast');
+            var toastBody = toastElement.querySelector('.toast-body'); // Select the toast body
+            var toast = new bootstrap.Toast(toastElement);
+
+            fetch('/admin/remove_application', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ app_id: parseInt(app_id) })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.message === "Application removed successfully") {
+                        // Get the existing modal instance
+                        var modalElement = document.getElementById('register-app');
+                        var modalInstance = bootstrap.Modal.getInstance(modalElement) || new bootstrap.Modal(modalElement);
+                        // Close the modal
+                        modalInstance.hide();
+                        // Reload the page after a short delay
+                        setTimeout(function () {
+                            window.location.reload();
+                        }, 300);
+                    } else {
+                        // Show the toast message
+                        toastBody.innerHTML = data.error;
+                        // Show the toast with the updated body content
+                        toast.show();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    // Modify the content of the toast body
+                    toastBody.innerHTML = error;
+                    // Show the toast with the updated body content
+                    toast.show();
+                })
+        }
+
     </script>
 </body>
 

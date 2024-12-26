@@ -12,11 +12,59 @@ const prisma = new PrismaClient();
 // Middleware to parse JSON bodies
 login.use(bodyParser.json());
 
-// Route: Admin Login
+
 login.route('/admin')
     .get((_req, res) => {
         res.render("partials/login.ejs", { title: "Coretify - Login Admin" });
     })
+
+/**
+* @swagger
+* /login/admin:
+*   post:
+*     summary: Admin login
+*     tags:
+*       - Login
+*     requestBody:
+*       required: true
+*       content:
+*         application/json:
+*           schema:
+*             type: object
+*             properties:
+*               username:
+*                 type: string
+*                 required: true
+*               password:
+*                 type: string
+*                 required: true
+*     responses:
+*       200:
+*         description: Login successful
+*         content:
+*           application/json:
+*             schema:
+*               type: object
+*               properties:
+*                 status:
+*                   type: string
+*                 token:
+*                   type: string
+*       401:
+*         description: Invalid credentials
+*         content:
+*           application/json:
+*             schema:
+*               type: object
+*               properties:
+*                 error:
+*                   type: string
+*                 message:
+*                   type: string
+*                 status:
+*                   type: string
+*/
+login.route('/admin')
     .post(limiter, (req, res) => {
         const { username, password } = req.body;
 
@@ -38,7 +86,68 @@ login.route('/admin')
         return res.json({ status: 'ok', token });
     });
 
-// Route: Client Login
+/**
+ * @swagger
+ * /login/client:
+ *   post:
+ *     summary: Client login
+ *     tags:
+ *       - Login
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               username:
+ *                 type: string
+ *                 required: true
+ *               password:
+ *                 type: string
+ *                 required: true
+ *               app_token:
+ *                 type: string
+ *                 required: true
+ *     responses:
+ *       200:
+ *         description: Login successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                 token:
+ *                   type: string
+ *       401:
+ *         description: Invalid credentials
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                 message:
+ *                   type: string
+ *                 status:
+ *                   type: string
+ *         400:
+ *           description: Invalid request body 
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 type: object
+ *                 properties:
+ *                   error:
+ *                     type: string
+ *                   message:
+ *                     type: string
+ *                   status:
+ *                     type: string
+ */
 login.route('/client')
     .post(limiter, async (req, res) => {
         const { username, password, app_token } = req.body;

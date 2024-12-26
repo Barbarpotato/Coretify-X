@@ -28,6 +28,8 @@
     "jsonwebtoken": "^9.0.2",
     "prisma": "^5.19.1",
     "rate-limit-redis": "^4.2.0",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1",
     "uuid": "^10.0.0"
   }
 }

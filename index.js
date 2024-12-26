@@ -1,5 +1,7 @@
 import express from 'express';
 import cookieParser from 'cookie-parser';
+import swaggerJsdoc from 'swagger-jsdoc';
+import swaggerUi from 'swagger-ui-express';
 import helmet from 'helmet'
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
@@ -39,6 +41,27 @@ app.use(helmet({
     noCache: true,      // Enable noCache
     contentSecurityPolicy: false,
 }));
+
+
+// Swagger definition
+const swaggerOptions = {
+    definition: {
+        openapi: '3.0.0',  // OpenAPI version
+        info: {
+            title: 'Coretify Public API Documentation',
+            version: '1.0.0',
+            description: 'Documentation for the Coretify API Endpoints Provided for Third-Party Applications',
+        },
+    },
+    // Path to the API specs
+    apis: ['./routes/*.js'],
+};
+
+// Create swagger spec
+const swaggerDocs = swaggerJsdoc(swaggerOptions);
+
+// Use Swagger UI to serve docs at /api-docs
+app.use('/documentations', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
 // Use cookie-parser middleware
 app.use(cookieParser());

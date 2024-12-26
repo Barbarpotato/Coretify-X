@@ -149,6 +149,10 @@ The configuration for Coretify is managed through a single file that streamlines
 
 This configuration file plays a crucial role in ensuring that Coretify operates securely and efficiently, making it easy to manage settings and sensitive information in one place
 
+# API Public Documentations
+You can access the public API documentation trough the <a link="https://coretify.vercel.app/documentations" target="_blank">Coretify</a> Website. Supported by Swagger UI API for easy human readable Documentations and
+Suppport API Endpoint Execution and Demonstration.
+
 # Authentication API
 
 This document outlines the API for user authentication using JWT tokens in the Express application.

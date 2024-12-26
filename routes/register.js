@@ -10,6 +10,7 @@ const prisma = new PrismaClient();
 
 register.use(bodyParser.json());
 
+
 register.route('/application')
     .post(authenticateToken, limiter, async (req, res) => {
         try {
@@ -39,6 +40,7 @@ register.route('/application')
             return res.status(500).json({ error: 'Application registration failed' });
         }
     })
+
 
 register.route('/user')
     .post(authenticateToken, limiter, async (req, res) => {
@@ -74,6 +76,47 @@ register.route('/user')
         }
     })
 
+
+/**
+ * @swagger
+ * /register/signup:
+ *   post:
+ *     summary: Register a user with a signup key
+ *     tags:
+ *       - Register
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               username:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *               signup_key:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: User registered successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *         400:
+ *           description: Invalid Parameters
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 type: object
+ *                 properties:
+ *                   message:
+ *                     type: string
+*/
 register.route('/signup')
     .post(async (req, res) => {
         try {
@@ -119,5 +162,6 @@ register.route('/signup')
             return res.status(500).json({ error: 'User registration failed' });
         }
     })
+
 
 export default register;
