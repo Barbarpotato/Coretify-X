@@ -42,6 +42,11 @@ app.use(helmet({
     contentSecurityPolicy: false,
 }));
 
+// Disable `noSniff` header for Swagger route
+const swaggerHelmet = helmet({
+    noSniff: false, // Allow incorrect MIME types for Swagger UI assets
+    contentSecurityPolicy: false, // Disable CSP for Swagger UI
+});
 
 // Swagger definition
 const swaggerOptions = {
@@ -61,7 +66,7 @@ const swaggerOptions = {
 const swaggerDocs = swaggerJsdoc(swaggerOptions);
 
 // Use Swagger UI to serve docs at /api-docs
-app.use('/documentations', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+app.use('/documentations', swaggerHelmet, swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
 // Use cookie-parser middleware
 app.use(cookieParser());
