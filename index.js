@@ -4,6 +4,7 @@ import swaggerJsdoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
 import helmet from 'helmet'
 import { fileURLToPath } from 'url';
+import path from 'path';
 import { dirname } from 'path';
 import demo from './routes/demo.js';
 import admin from './routes/admin.js';
@@ -16,14 +17,19 @@ import cors from 'cors';
 const app = express();
 
 // Set the views directory
+const swaggerUiDistPath = path.join(require.resolve('swagger-ui-dist'), '..');
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+
 
 app.set('trust proxy', true);
 
 app.set("views", __dirname + "/views");
 app.set("view engine", "ejs");
 app.use(express.static(__dirname + "/public"));
+
+// Serve Swagger UI assets manually
+app.use('/swagger-ui', express.static(swaggerUiDistPath));
 
 // Swagger definition
 const swaggerOptions = {
@@ -45,22 +51,22 @@ const swaggerDocs = swaggerJsdoc(swaggerOptions);
 // Use Swagger UI to serve docs at /api-docs
 app.use('/documentations', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
-// app.use(helmet({
-//     hidePoweredBy: true, // Hide the X-Powered-By header
-//     frameguard: {         // Configure frameguard
-//         action: 'deny'
-//     },
-//     xssFilter: true,     // Enable X-XSS-Protection header
-//     noSniff: true,      // Add noSniff middleware to prevent MIME-type sniffing
-//     ieNoOpen: true,     // Set X-Download-Options to noopen
-//     hsts: {              // Enable and configure HSTS
-//         maxAge: 90 * 24 * 60 * 60,
-//         force: true
-//     },
-//     dnsPrefetchControl: false, // Disable DNS prefetching
-//     noCache: true,      // Enable noCache
-//     contentSecurityPolicy: false,
-// }));
+app.use(helmet({
+    hidePoweredBy: true, // Hide the X-Powered-By header
+    frameguard: {         // Configure frameguard
+        action: 'deny'
+    },
+    xssFilter: true,     // Enable X-XSS-Protection header
+    noSniff: true,      // Add noSniff middleware to prevent MIME-type sniffing
+    ieNoOpen: true,     // Set X-Download-Options to noopen
+    hsts: {              // Enable and configure HSTS
+        maxAge: 90 * 24 * 60 * 60,
+        force: true
+    },
+    dnsPrefetchControl: false, // Disable DNS prefetching
+    noCache: true,      // Enable noCache
+    contentSecurityPolicy: false,
+}));
 
 // Use cookie-parser middleware
 app.use(cookieParser());

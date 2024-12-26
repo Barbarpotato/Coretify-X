@@ -9,6 +9,10 @@
         {
             "src": "/(.*)",
             "dest": "index.js"
+        },
+        {
+            "src": "/documentations/(.*)",
+            "dest": "index.js"
         }
     ]
 }
