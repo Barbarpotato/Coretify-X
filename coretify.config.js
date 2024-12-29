@@ -16,10 +16,9 @@ export const index = {
     jwtSecret: process.env.JWT_SECRET,
     corsOptions: {
         origin: ["https://barbarpotato.github.io",
-            "https://personal-blog-darmajr.web.app",
-            "localhost:8081", "localhost:7999"],
+            "https://personal-blog-darmajr.web.app"],
         methods: ['GET', 'POST'],
-        allowedHeaders: ['Content-Type', 'Authorization'],
+        allowedHeaders: ['Content-Type', 'Authorization', 'X-Forwarded-For'],
         maxAge: 120, // 120 seconds = 2 minutes
     },
     useRateLimit: true,
