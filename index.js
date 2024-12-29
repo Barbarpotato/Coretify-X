@@ -81,15 +81,16 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use(cors(index.corsOptions));
 
-// app.use((req, res, next) => {
-//     const userAgent = req.headers['user-agent'];
-//     if (/Mozilla/.test(userAgent)) {
-//         // Likely from a browser
-//         next(); // continue with the request
-//     } else {
-//         res.status(403).send('Forbidden Access');
-//     }
-// });
+// Middleware to check if the request is from a browser
+app.use((req, res, next) => {
+    const userAgent = req.headers['user-agent'];
+    if (/Mozilla/.test(userAgent)) {
+        // Likely from a browser
+        next(); // continue with the request
+    } else {
+        res.status(403).send('Forbidden Access');
+    }
+});
 
 app.get('/', (req, res) => {
     const data = { title: 'Coretify - Fast Auth Setup Application', message: 'Hello, Coretify!' };

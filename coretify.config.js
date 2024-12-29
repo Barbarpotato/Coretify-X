@@ -17,7 +17,7 @@ export const index = {
     corsOptions: {
         origin: ["https://barbarpotato.github.io",
             "https://personal-blog-darmajr.web.app",
-            "localhost:8080", "localhost:7999"],
+            "localhost:8081", "localhost:7999"],
         methods: ['GET', 'POST'],
         allowedHeaders: ['Content-Type', 'Authorization'],
         maxAge: 120, // 120 seconds = 2 minutes
