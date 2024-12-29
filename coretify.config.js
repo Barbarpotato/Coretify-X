@@ -15,10 +15,8 @@ export const index = {
     jwtSecretAdmin: process.env.JWT_SECRET_ADMIN,
     jwtSecret: process.env.JWT_SECRET,
     corsOptions: {
-        origin: function (origin, callback) {
-            // you can specify more detail about origin here
-            callback(null, true);
-        },
+        origin: ["https://barbarpotato.github.io", "https://personal-blog-darmajr.web.app"],
+        methods: ['GET', 'POST'],
         allowedHeaders: ['Content-Type', 'Authorization'],
         maxAge: 120, // 120 seconds = 2 minutes
     },

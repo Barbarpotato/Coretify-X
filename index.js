@@ -5,6 +5,7 @@ import swaggerUi from 'swagger-ui-express';
 import helmet from 'helmet'
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import proxy from './routes/proxy.js';
 import demo from './routes/demo.js';
 import admin from './routes/admin.js';
 import register from './routes/register.js';
@@ -80,11 +81,22 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use(cors(index.corsOptions));
 
+// app.use((req, res, next) => {
+//     const userAgent = req.headers['user-agent'];
+//     if (/Mozilla/.test(userAgent)) {
+//         // Likely from a browser
+//         next(); // continue with the request
+//     } else {
+//         res.status(403).send('Forbidden Access');
+//     }
+// });
+
 app.get('/', (req, res) => {
     const data = { title: 'Coretify - Fast Auth Setup Application', message: 'Hello, Coretify!' };
     res.render('index', data);  // Render the index.ejs view
 });
 
+app.use('/proxy', proxy);
 app.use('/admin', admin);
 app.use('/demo', demo);
 app.use('/register', register);
