@@ -4,6 +4,7 @@ import bcrypt from 'bcryptjs';
 import { index } from '../coretify.config.js';
 import bodyParser from 'body-parser';
 import { limiter } from './middleware.js';
+import { hash } from 'crypto';
 
 const proxy = express.Router();
 
@@ -27,7 +28,10 @@ proxy.route('/requester')
         // Generate HASH IP to masking the information data
         const hashed_ip = await bcrypt.hash(ip_address ? ip_address : '127.0.0.1', 10);
 
-        const token = jwt.sign({ log: hashed_ip, created: date.toISOString() }, index.jwtSecret, { expiresIn: '5m' });
+        // the secret key for the jwt token in client-server proxy
+        const jwtSecretTuning = index.jwtSecret + ip_address ? ip_address : '127.0.0.1';
+
+        const token = jwt.sign({ log: hashed_ip, created: date.toISOString() }, jwtSecretTuning, { expiresIn: '5m' });
 
         return res.json({ status: 'ok', token });
     })
@@ -54,7 +58,10 @@ proxy.route('/validator')
             });
         }
 
-        jwt.verify(token, index.jwtSecret, async (err, decoded) => {
+        // the secret key for the jwt token in client-server proxy
+        const jwtSecretTuning = index.jwtSecret + ip_address ? ip_address : '127.0.0.1';
+
+        jwt.verify(token, jwtSecretTuning, async (err, decoded) => {
             if (err) {
                 return limiter(req, res, () => {
                     return res.status(403).json({ message: 'Invalid token' });
