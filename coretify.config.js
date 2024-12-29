@@ -15,10 +15,13 @@ export const index = {
     jwtSecretAdmin: process.env.JWT_SECRET_ADMIN,
     jwtSecret: process.env.JWT_SECRET,
     corsOptions: {
-        origin: ["https://barbarpotato.github.io", "https://personal-blog-darmajr.web.app"],
+        origin: ["https://barbarpotato.github.io",
+            "https://personal-blog-darmajr.web.app",
+            "localhost:8080", "localhost:7999"],
         methods: ['GET', 'POST'],
         allowedHeaders: ['Content-Type', 'Authorization'],
         maxAge: 120, // 120 seconds = 2 minutes
     },
-    useRateLimit: true
+    useRateLimit: true,
+    nodeEnv: process.env.NODE_ENV ? process.env.NODE_ENV : "Development",
 };

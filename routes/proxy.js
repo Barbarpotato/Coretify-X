@@ -1,5 +1,6 @@
 import express from 'express';
 import jwt from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
 import { index } from '../coretify.config.js';
 import bodyParser from 'body-parser';
 import { limiter } from './middleware.js';
@@ -8,34 +9,68 @@ const proxy = express.Router();
 
 proxy.use(bodyParser.json());
 
+
 proxy.route('/requester')
-    .get(limiter, async (req, res) => {
+    .get(async (req, res) => {
 
-        const Secretkey = req.ip || req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+        const date = new Date();
 
-        const jwtSecret = Secretkey ? Secretkey : "localhost";
+        const ip_address = req.ip || req.headers['x-forwarded-for'] || req.connection.remoteAddress;
 
-        console.log(jwtSecret);
+        // ip address cannot empty during production
+        if (index.nodeEnv !== 'Development' && !ip_address) {
+            return limiter(req, res, () => {
+                return res.status(403).json({ message: 'Forbidden Access' });
+            });
+        }
 
-        const token = jwt.sign({ ...req.headers }, jwtSecret, { expiresIn: '5m' });
+        // Generate HASH IP to masking the information data
+        const hashed_ip = await bcrypt.hash(ip_address ? ip_address : '127.0.0.1', 10);
+
+        const token = jwt.sign({ log: hashed_ip, created: date.toISOString() }, index.jwtSecret, { expiresIn: '5m' });
 
         return res.json({ status: 'ok', token });
     })
 
+
 proxy.route('/validator')
-    .post((req, res) => {
+    .post(async (req, res) => {
 
-        const { token, key } = req.body;
+        const { token } = req.body;
 
-        if (!token || !key) {
-            return res.status(401).json({ message: 'Invalid credentials' });
+        if (!token) {
+            return limiter(req, res, () => {
+                return res.status(401).json({ message: 'Invalid credentials' });
+            });
         }
 
-        jwt.verify(token, key, (err, decoded) => {
+        // Generate HASH IP to compare with the one in the token
+        const ip_address = req.ip || req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+
+        // ip address cannot empty during production
+        if (index.nodeEnv !== 'Development' && !ip_address) {
+            return limiter(req, res, () => {
+                return res.status(403).json({ message: 'Forbidden Access' });
+            });
+        }
+
+        jwt.verify(token, index.jwtSecret, async (err, decoded) => {
             if (err) {
-                return res.status(403).json({ message: 'Invalid token' });
+                return limiter(req, res, () => {
+                    return res.status(403).json({ message: 'Invalid token' });
+                });
             }
-            res.json({ message: 'Token is valid', user: decoded });
+
+            // Compare the ip address with the one in the token
+            const is_ip_valid = await bcrypt.compare(ip_address ? ip_address : '127.0.0.1', decoded.log);
+
+            if (!is_ip_valid) {
+                return limiter(req, res, () => {
+                    return res.status(403).json({ message: 'Invalid token' });
+                });
+            }
+
+            res.json({ message: 'Token is valid', data: decoded });
         });
     })
 
