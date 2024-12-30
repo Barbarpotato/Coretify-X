@@ -31,7 +31,7 @@ proxy.route('/requester')
         // the secret key for the jwt token in client-server proxy
         const jwtSecretTuning = index.jwtSecret + ip_address ? ip_address : '127.0.0.1';
 
-        const token = jwt.sign({ log: hashed_ip, created: date.toISOString() }, jwtSecretTuning, { expiresIn: '5m' });
+        const token = jwt.sign({ log: hashed_ip, created: date.toISOString() }, jwtSecretTuning, { expiresIn: '60m' });
 
         return res.json({ status: 'ok', token });
     })
